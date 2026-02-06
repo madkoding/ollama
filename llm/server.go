@@ -523,6 +523,50 @@ func (s *llamaServer) Load(ctx context.Context, systemInfo ml.SystemInfo, system
 	kv, graphPartialOffload, graphFullOffload := s.ggml.GraphSize(uint64(s.options.NumCtx), uint64(s.loadRequest.BatchSize),
 		s.loadRequest.Parallel, s.loadRequest.KvCacheType, s.loadRequest.FlashAttention)
 
+	// Auto-suggest KV cache quantization when VRAM is tight and flash attention is available.
+	// If the user hasn't explicitly set a KV cache type and flash attention is enabled,
+	// estimate whether quantizing the KV cache to q8_0 would allow more layers to fit on GPU.
+	if s.loadRequest.KvCacheType == "" && s.loadRequest.FlashAttention != ml.FlashAttentionDisabled && len(gpus) > 0 {
+		var totalGPUFree uint64
+		for _, g := range gpus {
+			totalGPUFree += g.FreeMemory
+		}
+
+		var totalKV uint64
+		for _, kvLayer := range kv {
+			totalKV += kvLayer
+		}
+
+		var totalWeights uint64
+		layers := s.ggml.Tensors().GroupLayers()
+		for i := range s.ggml.KV().BlockCount() {
+			if blk, ok := layers[fmt.Sprintf("blk.%d", i)]; ok {
+				totalWeights += blk.Size()
+			}
+		}
+
+		// If the model weights + KV cache don't fit, but weights alone do (or nearly do),
+		// KV cache quantization could be the difference
+		totalNeeded := totalWeights + totalKV + graphFullOffload
+		if totalNeeded > totalGPUFree && totalWeights < totalGPUFree {
+			kvQ8, _, _ := s.ggml.GraphSize(uint64(s.options.NumCtx), uint64(s.loadRequest.BatchSize),
+				s.loadRequest.Parallel, "q8_0", s.loadRequest.FlashAttention)
+			var totalKVQ8 uint64
+			for _, kvLayer := range kvQ8 {
+				totalKVQ8 += kvLayer
+			}
+			kvSavings := totalKV - totalKVQ8
+			if totalNeeded-kvSavings <= totalGPUFree && s.ggml.SupportsKVCacheType("q8_0") {
+				slog.Info("auto-selecting q8_0 KV cache quantization to fit model in VRAM",
+					"kv_f16", format.HumanBytes2(totalKV),
+					"kv_q8_0", format.HumanBytes2(totalKVQ8),
+					"savings", format.HumanBytes2(kvSavings))
+				s.loadRequest.KvCacheType = "q8_0"
+				kv = kvQ8
+			}
+		}
+	}
+
 	// Use the size of one layer as a buffer
 	layers := s.ggml.Tensors().GroupLayers()
 	if blk0, ok := layers["blk.0"]; ok {
@@ -669,7 +713,11 @@ func (s *llamaServer) Load(ctx context.Context, systemInfo ml.SystemInfo, system
 	slog.Debug("memory", "estimate", s.mem)
 	s.mem.Log(slog.LevelInfo)
 
-	// The llama engine uses mmap by default
+	// Determine optimal mmap strategy based on system configuration.
+	// mmap allows the OS to page model data in/out on demand, which is beneficial
+	// when the model is partially offloaded (GPU handles some layers, CPU handles
+	// the rest via page faults). However, mmap can cause performance issues in
+	// certain scenarios.
 	s.loadRequest.UseMmap = true
 
 	// mmap has issues with partial offloading on metal
@@ -682,15 +730,41 @@ func (s *llamaServer) Load(ctx context.Context, systemInfo ml.SystemInfo, system
 		}
 	}
 
-	// Windows CUDA should not use mmap for best performance
-	// Linux  with a model larger than free space, mmap leads to thrashing
-	// For CPU loads we want the memory to be allocated, not FS cache
-	if (runtime.GOOS == "windows" && len(gpus) > 0 && gpus[0].Library == "CUDA" && s.options.UseMMap == nil) ||
-		(runtime.GOOS == "linux" && systemInfo.FreeMemory < s.TotalSize() && s.options.UseMMap == nil) ||
-		(len(gpus) == 0 && s.options.UseMMap == nil) ||
-		(len(gpus) > 0 && gpus[0].Library == "Vulkan" && s.options.UseMMap == nil) ||
-		(s.options.UseMMap != nil && !*s.options.UseMMap) {
+	// Calculate what fraction of the model is GPU-offloaded to make smarter mmap decisions
+	gpuOffloadRatio := float64(gpuLayers.Sum()) / float64(max(s.totalLayers, 1))
+
+	if s.options.UseMMap != nil && !*s.options.UseMMap {
+		// User explicitly disabled mmap
 		s.loadRequest.UseMmap = false
+	} else if s.options.UseMMap == nil {
+		switch {
+		// Windows CUDA should not use mmap for best GPU transfer performance
+		case runtime.GOOS == "windows" && len(gpus) > 0 && gpus[0].Library == "CUDA":
+			s.loadRequest.UseMmap = false
+		// Vulkan backend doesn't work well with mmap
+		case len(gpus) > 0 && gpus[0].Library == "Vulkan":
+			s.loadRequest.UseMmap = false
+		// CPU-only loads: allocate memory directly rather than relying on FS cache
+		case len(gpus) == 0:
+			s.loadRequest.UseMmap = false
+		// Linux: if model is larger than free memory, mmap leads to thrashing.
+		// But if most layers are on GPU, the CPU portion may still fit, so allow
+		// mmap when a significant portion is offloaded to GPU.
+		case runtime.GOOS == "linux" && systemInfo.FreeMemory < s.TotalSize():
+			cpuPortionSize := uint64(float64(s.TotalSize()) * (1.0 - gpuOffloadRatio))
+			if cpuPortionSize > systemInfo.FreeMemory {
+				slog.Info("disabling mmap: CPU portion exceeds free memory",
+					"cpu_portion", format.HumanBytes2(cpuPortionSize),
+					"free_memory", format.HumanBytes2(systemInfo.FreeMemory),
+					"gpu_offload_pct", int(gpuOffloadRatio*100))
+				s.loadRequest.UseMmap = false
+			} else {
+				slog.Info("keeping mmap enabled: CPU portion fits in memory despite total model size",
+					"cpu_portion", format.HumanBytes2(cpuPortionSize),
+					"free_memory", format.HumanBytes2(systemInfo.FreeMemory),
+					"gpu_offload_pct", int(gpuOffloadRatio*100))
+			}
+		}
 	}
 
 	if err := s.waitUntilRunnerLaunched(ctx); err != nil {
@@ -1135,11 +1209,22 @@ func findBestFit(layers []uint64, gpus []ml.DeviceInfo, requestedLayers int, for
 	return gpuLayers
 }
 
-// greedyFit assigns layers incrementally to GPUs, spilling over as each runs out of free space
+// greedyFit assigns layers incrementally to GPUs, spilling over as each runs out of free space.
+// Layers are assigned from the output (highest index) towards the input (lowest index) to
+// prioritize keeping the output layer and its adjacent transformer layers on the same GPU,
+// which reduces cross-device memory transfers during inference.
 func greedyFit(layers []uint64, gpus []ml.DeviceInfo, capacity float32, requestedLayers int) (gpuLayers ml.GPULayersList) {
 	device := len(gpus) - 1
 	gpuLayers = ml.GPULayersList{{DeviceID: gpus[device].DeviceID}}
 	freeSpace := uint64(float32(gpus[device].FreeMemory) * capacity)
+
+	// Pre-calculate total layer size to log utilization statistics
+	var totalLayerSize uint64
+	for _, l := range layers {
+		totalLayerSize += l
+	}
+
+	var assignedSize uint64
 	for i := len(layers) - 1; i >= 0; i-- {
 		if requestedLayers >= 0 && len(layers)-1-i >= requestedLayers {
 			break
@@ -1149,17 +1234,35 @@ func greedyFit(layers []uint64, gpus []ml.DeviceInfo, capacity float32, requeste
 			if layers[i] <= freeSpace {
 				gpuLayers[0].Layers = append([]int{i}, gpuLayers[0].Layers...)
 				freeSpace -= layers[i]
+				assignedSize += layers[i]
 				break
 			}
 
 			device--
 			if device < 0 {
+				if totalLayerSize > 0 {
+					slog.Debug("GPU capacity exhausted during layer assignment",
+						"assigned_layers", gpuLayers.Sum(),
+						"total_layers", len(layers),
+						"assigned_size", format.HumanBytes2(assignedSize),
+						"total_size", format.HumanBytes2(totalLayerSize),
+						"utilization_pct", int(float64(assignedSize)/float64(totalLayerSize)*100))
+				}
 				return gpuLayers
 			}
 			gpuLayers = append(ml.GPULayersList{{DeviceID: gpus[device].DeviceID}}, gpuLayers...)
 			freeSpace = uint64(float32(gpus[device].FreeMemory) * capacity)
 		}
 	}
+
+	if totalLayerSize > 0 {
+		slog.Debug("layer assignment complete",
+			"assigned_layers", gpuLayers.Sum(),
+			"total_layers", len(layers),
+			"gpu_count", len(gpus)-device,
+			"utilization_pct", int(float64(assignedSize)/float64(totalLayerSize)*100))
+	}
+
 	return gpuLayers
 }
 

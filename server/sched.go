@@ -763,14 +763,21 @@ func (s *Scheduler) waitForVRAMRecovery(runner *runnerRef, runners []ml.Filtered
 	freeMemoryNow := freeMemoryBefore
 
 	go func() {
-		// typical convergence is 0.5-1.5s - If it takes too long to discover and converge, let the scheduler estimate VRAM usage
+		// Adaptive polling: start with fast checks (100ms) since typical convergence is 0.5-1.5s,
+		// then slow down to reduce CPU overhead if recovery takes longer than expected.
+		// This improves responsiveness for the common case while being resource-efficient
+		// for slow GPU drivers.
 		ctx, cancel := context.WithTimeout(context.Background(), s.waitForRecovery)
 		defer cancel()
-		ticker := time.NewTicker(250 * time.Millisecond)
+		pollInterval := 100 * time.Millisecond
+		maxPollInterval := 500 * time.Millisecond
+		ticker := time.NewTicker(pollInterval)
 		defer ticker.Stop()
+		checks := 0
 		for {
 			select {
 			case <-ticker.C:
+				checks++
 				// Query GPUs, look for free to go back up
 				gpusNow := s.getGpuFn(ctx, runners)
 				totalMemoryNow = 0
@@ -786,12 +793,20 @@ func (s *Scheduler) waitForVRAMRecovery(runner *runnerRef, runners []ml.Filtered
 				}
 				// If we're within ~75% of the estimated memory usage recovered, bail out
 				if float32(freeMemoryNow-freeMemoryBefore) > float32(runner.vramSize)*0.75 {
-					slog.Debug("gpu VRAM free memory converged", "elapsed_seconds", time.Since(start).Seconds(), "free_before", format.HumanBytes2(freeMemoryBefore), "free_now", format.HumanBytes2(freeMemoryNow), "runner", runner)
+					slog.Debug("gpu VRAM free memory converged", "elapsed_seconds", time.Since(start).Seconds(), "free_before", format.HumanBytes2(freeMemoryBefore), "free_now", format.HumanBytes2(freeMemoryNow), "checks", checks, "runner", runner)
 					finished <- struct{}{}
 					return
 				}
+				// Adaptively slow down polling after initial fast checks
+				if checks == 4 && pollInterval < maxPollInterval {
+					pollInterval = 250 * time.Millisecond
+					ticker.Reset(pollInterval)
+				} else if checks == 8 && pollInterval < maxPollInterval {
+					pollInterval = maxPollInterval
+					ticker.Reset(pollInterval)
+				}
 			case <-ctx.Done():
-				slog.Debug("gpu VRAM usage didn't recover within timeout", "seconds", time.Since(start).Seconds(), "free_before", format.HumanBytes2(freeMemoryBefore), "free_now", format.HumanBytes2(freeMemoryNow), "runner", runner)
+				slog.Debug("gpu VRAM usage didn't recover within timeout", "seconds", time.Since(start).Seconds(), "free_before", format.HumanBytes2(freeMemoryBefore), "free_now", format.HumanBytes2(freeMemoryNow), "checks", checks, "runner", runner)
 				finished <- struct{}{}
 				return
 			}
