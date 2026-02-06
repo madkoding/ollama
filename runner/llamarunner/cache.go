@@ -202,7 +202,7 @@ func countCommonPrefix(a []input, b []input) int {
 	n := min(len(a), len(b))
 
 	var count int
-	for i := 0; i < n; i++ {
+	for i := range n {
 		if !inputsEqual(a[i], b[i]) {
 			break
 		}
