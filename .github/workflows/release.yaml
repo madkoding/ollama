@@ -17,6 +17,7 @@ jobs:
       GOFLAGS: ${{ steps.goflags.outputs.GOFLAGS }}
       VERSION: ${{ steps.goflags.outputs.VERSION }}
       vendorsha: ${{ steps.changes.outputs.vendorsha }}
+      has_docker_creds: ${{ steps.docker-creds.outputs.has_creds }}
     steps:
       - uses: actions/checkout@v4
       - name: Set environment
@@ -25,6 +26,16 @@ jobs:
           echo GOFLAGS="'-ldflags=-w -s \"-X=github.com/ollama/ollama/version.Version=${GITHUB_REF_NAME#v}\" \"-X=github.com/ollama/ollama/server.mode=release\"'" | tee -a $GITHUB_OUTPUT
           echo VERSION="${GITHUB_REF_NAME#v}" | tee -a $GITHUB_OUTPUT
           echo vendorsha=$(make -f Makefile.sync print-base) | tee -a $GITHUB_OUTPUT
+      - name: Check Docker credentials
+        id: docker-creds
+        run: |
+          if [ -n "$DOCKER_USER" ]; then
+            echo "has_creds=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_creds=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          DOCKER_USER: ${{ vars.DOCKER_USER }}
 
   darwin-build:
     runs-on: macos-14-xlarge
@@ -415,6 +426,7 @@ jobs:
 
   # Build each Docker variant (OS, arch, and flavor) separately. Using QEMU is unreliable and slower.
   docker-build-push:
+    if: ${{ needs.setup-environment.outputs.has_docker_creds == 'true' }}
     strategy:
       matrix:
         include:
