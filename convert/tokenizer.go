@@ -321,7 +321,8 @@ func (sv SpecialVocabulary) Key() string {
 		return "seperator"
 	case "pad":
 		return "padding"
+	default:
+		// fallback: use the type name directly for unknown vocabulary types
+		return t
 	}
-
-	panic("unknown special vocabulary type")
 }

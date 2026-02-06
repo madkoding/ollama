@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/ollama/ollama/api"
 	"github.com/ollama/ollama/fs/ggml"
@@ -18,7 +19,10 @@ import (
 	"github.com/ollama/ollama/types/model"
 )
 
-var intermediateBlobs map[string]string = make(map[string]string)
+var (
+	intermediateBlobs   = make(map[string]string)
+	intermediateBlobsMu sync.RWMutex
+)
 
 type layerGGML struct {
 	manifest.Layer

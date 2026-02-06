@@ -157,7 +157,11 @@ func eat(s *Parser) (string, string, bool) {
 		s.acc.Reset()
 		return "", acc, false
 	default:
-		panic("unknown state")
+		// unknown state: reset to done and return accumulated content as-is
+		acc := s.acc.String()
+		s.acc.Reset()
+		s.state = thinkingState_ThinkingDone
+		return "", acc, false
 	}
 }
 

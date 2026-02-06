@@ -451,7 +451,11 @@ func (s *Scheduler) load(req *LlmRequest, f *ggml.GGML, systemInfo ml.SystemInfo
 		s.activeLoading = llama
 	} else {
 		if s.activeLoading.ModelPath() != req.model.ModelPath {
-			panic(fmt.Errorf("attempting to load different model after eviction (original %v new %v)", s.activeLoading.ModelPath(), req.model.ModelPath))
+			err := fmt.Errorf("attempting to load different model after eviction (original %v new %v)", s.activeLoading.ModelPath(), req.model.ModelPath)
+			slog.Error("model load conflict", "error", err)
+			req.errCh <- err
+			s.loadedMu.Unlock()
+			return false
 		}
 	}
 
@@ -782,7 +786,7 @@ func (s *Scheduler) waitForVRAMRecovery(runner *runnerRef, runners []ml.Filtered
 				}
 				// If we're within ~75% of the estimated memory usage recovered, bail out
 				if float32(freeMemoryNow-freeMemoryBefore) > float32(runner.vramSize)*0.75 {
-					slog.Debug(fmt.Sprintf("gpu VRAM free memory converged after %0.2f seconds", time.Since(start).Seconds()), "free_before", format.HumanBytes2(freeMemoryBefore), "free_now", format.HumanBytes2(freeMemoryNow), "runner", runner)
+					slog.Debug("gpu VRAM free memory converged", "elapsed_seconds", time.Since(start).Seconds(), "free_before", format.HumanBytes2(freeMemoryBefore), "free_now", format.HumanBytes2(freeMemoryNow), "runner", runner)
 					finished <- struct{}{}
 					return
 				}

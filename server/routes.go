@@ -1394,7 +1394,10 @@ func (s *Server) HeadBlobHandler(c *gin.Context) {
 }
 
 func (s *Server) CreateBlobHandler(c *gin.Context) {
-	if ib, ok := intermediateBlobs[c.Param("digest")]; ok {
+	intermediateBlobsMu.RLock()
+	ib, ok := intermediateBlobs[c.Param("digest")]
+	intermediateBlobsMu.RUnlock()
+	if ok {
 		p, err := manifest.BlobsPath(ib)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -1403,7 +1406,9 @@ func (s *Server) CreateBlobHandler(c *gin.Context) {
 
 		if _, err := os.Stat(p); errors.Is(err, os.ErrNotExist) {
 			slog.Info("evicting intermediate blob which no longer exists", "digest", ib)
+			intermediateBlobsMu.Lock()
 			delete(intermediateBlobs, c.Param("digest"))
+			intermediateBlobsMu.Unlock()
 		} else if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -1686,7 +1691,7 @@ func Serve(ln net.Listener) error {
 	sched := InitScheduler(schedCtx)
 	s.sched = sched
 
-	slog.Info(fmt.Sprintf("Listening on %s (version %s)", ln.Addr(), version.Version))
+	slog.Info("Listening", "addr", ln.Addr(), "version", version.Version)
 	srvr := &http.Server{
 		// Use http.DefaultServeMux so we get net/http/pprof for
 		// free.
@@ -1809,14 +1814,14 @@ func streamResponse(c *gin.Context, ch chan any) {
 
 		bts, err := json.Marshal(val)
 		if err != nil {
-			slog.Info(fmt.Sprintf("streamResponse: json.Marshal failed with %s", err))
+			slog.Info("streamResponse: json.Marshal failed", "error", err)
 			return false
 		}
 
 		// Delineate chunks with new-line delimiter
 		bts = append(bts, '\n')
 		if _, err := w.Write(bts); err != nil {
-			slog.Info(fmt.Sprintf("streamResponse: w.Write failed with %s", err))
+			slog.Info("streamResponse: w.Write failed", "error", err)
 			return false
 		}
 
