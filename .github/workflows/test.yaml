@@ -60,7 +60,7 @@ jobs:
               mesa-vulkan-drivers vulkan-tools
               libvulkan1 libvulkan-dev
               vulkan-sdk cmake ccache g++ make
-    runs-on: linux
+    runs-on: ubuntu-latest
     container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v4
@@ -114,7 +114,7 @@ jobs:
             flags: '-DAMDGPU_TARGETS=gfx1010 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_FLAGS="-parallel-jobs=4 -Wno-ignored-attributes -Wno-deprecated-pragma" -DCMAKE_CXX_FLAGS="-parallel-jobs=4 -Wno-ignored-attributes -Wno-deprecated-pragma"'
           - preset: Vulkan
             install: https://sdk.lunarg.com/sdk/download/1.4.321.1/windows/vulkansdk-windows-X64-1.4.321.1.exe
-    runs-on: windows
+    runs-on: windows-latest
     steps:
       - run: |
           choco install -y --no-progress ccache ninja
