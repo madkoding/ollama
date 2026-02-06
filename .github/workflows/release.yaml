@@ -117,7 +117,7 @@ jobs:
             install: https://sdk.lunarg.com/sdk/download/1.4.321.1/windows/vulkansdk-windows-X64-1.4.321.1.exe
             flags: ''
             runner_dir: 'vulkan'
-    runs-on: ${{ matrix.arch == 'arm64' && format('{0}-{1}', matrix.os, matrix.arch) || matrix.os }}
+    runs-on: windows-latest
     environment: release
     env:
       GOFLAGS: ${{ needs.setup-environment.outputs.GOFLAGS }}
@@ -222,7 +222,7 @@ jobs:
         - os: windows
           arch: arm64
           llvmarch: aarch64
-    runs-on: ${{ matrix.arch == 'arm64' && format('{0}-{1}', matrix.os, matrix.arch) || matrix.os }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'windows-11-arm' || 'windows-latest' }}
     environment: release
     needs: [setup-environment]
     env:
@@ -285,7 +285,7 @@ jobs:
             dist\*
 
   windows-app:
-    runs-on: windows
+    runs-on: windows-latest
     environment: release
     needs: [windows-build, windows-depends]
     env:
@@ -352,7 +352,7 @@ jobs:
           - os: linux
             arch: arm64
             target: archive
-    runs-on: ${{ matrix.arch == 'arm64' && format('{0}-{1}', matrix.os, matrix.arch) || matrix.os }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     environment: release
     needs: setup-environment
     env:
@@ -430,7 +430,7 @@ jobs:
               CGO_CXXFLAGS
               GOFLAGS
               FLAVOR=rocm
-    runs-on: ${{ matrix.arch == 'arm64' && format('{0}-{1}', matrix.os, matrix.arch) || matrix.os }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     environment: release
     needs: setup-environment
     env:
@@ -466,7 +466,7 @@ jobs:
     strategy:
       matrix:
         suffix: ['', '-rocm']
-    runs-on: linux
+    runs-on: ubuntu-latest
     environment: release
     needs: [docker-build-push]
     steps:
