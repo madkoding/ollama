@@ -114,7 +114,7 @@ jobs:
             flags: '-DAMDGPU_TARGETS=gfx1010 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_FLAGS="-parallel-jobs=4 -Wno-ignored-attributes -Wno-deprecated-pragma" -DCMAKE_CXX_FLAGS="-parallel-jobs=4 -Wno-ignored-attributes -Wno-deprecated-pragma"'
           - preset: Vulkan
             install: https://sdk.lunarg.com/sdk/download/1.4.321.1/windows/vulkansdk-windows-X64-1.4.321.1.exe
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - run: |
           choco install -y --no-progress ccache ninja
@@ -146,9 +146,17 @@ jobs:
           $ErrorActionPreference = "Stop"
           if ("${{ steps.cache-install.outputs.cache-hit }}" -ne 'true') {
             Invoke-WebRequest -Uri "${{ matrix.install }}" -OutFile "install.exe"
-            Start-Process -FilePath .\install.exe -ArgumentList '-install' -NoNewWindow -Wait
+            $proc = Start-Process -FilePath .\install.exe -ArgumentList '-install','-log',"$env:USERPROFILE\rocm_install.log" -NoNewWindow -Wait -PassThru
+            if ($proc.ExitCode -ne 0) {
+              if (Test-Path "$env:USERPROFILE\rocm_install.log") { Get-Content "$env:USERPROFILE\rocm_install.log" }
+              throw "ROCm installer failed with exit code $($proc.ExitCode)"
+            }
           }
 
+          if (!(Test-Path "C:\Program Files\AMD\ROCm")) {
+            if (Test-Path "$env:USERPROFILE\rocm_install.log") { Get-Content "$env:USERPROFILE\rocm_install.log" }
+            throw "ROCm installation directory not found at C:\Program Files\AMD\ROCm"
+          }
           $hipPath = (Resolve-Path "C:\Program Files\AMD\ROCm\*").path
           echo "$hipPath\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           echo "CC=$hipPath\bin\clang.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
