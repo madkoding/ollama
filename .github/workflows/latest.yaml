@@ -6,6 +6,7 @@ on:
 
 jobs:
   update-latest:
+    if: vars.DOCKER_USER != ''
     environment: release
     runs-on: ubuntu-latest
     steps:

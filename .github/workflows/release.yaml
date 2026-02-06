@@ -407,6 +407,7 @@ jobs:
 
   # Build each Docker variant (OS, arch, and flavor) separately. Using QEMU is unreliable and slower.
   docker-build-push:
+    if: vars.DOCKER_USER != ''
     strategy:
       matrix:
         include:
@@ -463,6 +464,7 @@ jobs:
 
   # Merge Docker images for the same flavor into a single multi-arch manifest
   docker-merge-push:
+    if: vars.DOCKER_USER != ''
     strategy:
       matrix:
         suffix: ['', '-rocm']
