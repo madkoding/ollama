@@ -104,6 +104,7 @@ static __global__ void mul_mat_vec_f(
                 gate_x2 = (const float2 *) gate_x;
             }
         }
+        GGML_UNUSED(gate_x2);
 
         for (int col2 = tid; col2 < ncols2; col2 += block_size) {
             const float2 tmpx = x2[col2];
@@ -136,6 +137,7 @@ static __global__ void mul_mat_vec_f(
                 gate_x2 = (const half2 *) gate_x;
             }
         }
+        GGML_UNUSED(gate_x2);
 
         if (std::is_same_v<type_acc, float>) {
             for (int col2 = tid; col2 < ncols2; col2 += block_size) {
@@ -213,6 +215,7 @@ static __global__ void mul_mat_vec_f(
                 gate_x2 = (const int *) gate_x;
             }
         }
+        GGML_UNUSED(gate_x2);
         for (int col2 = tid; col2 < ncols2; col2 += block_size) {
             const int tmpx = x2[col2];
             int tmpx_gate = 0;
@@ -247,6 +250,7 @@ static __global__ void mul_mat_vec_f(
                 gate_x2 = (const nv_bfloat162 *) gate_x;
             }
         }
+        GGML_UNUSED(gate_x2);
         for (int col2 = tid; col2 < ncols2; col2 += block_size) {
             const nv_bfloat162 tmpx = x2[col2];
             nv_bfloat162 tmpx_gate;
@@ -345,7 +349,7 @@ static __global__ void mul_mat_vec_f(
     dst[tid*stride_col_dst + row] = value;
 
     if constexpr (!has_fusion) {
-        GGML_UNUSED_VARS(use_gate, use_bias, use_gate_bias, glu_op, gate_x, x_bias, gate_bias, sumf_gate);
+        GGML_UNUSED_VARS(use_gate, use_bias, use_gate_bias, glu_op, gate_x, x_bias, gate_bias, sumf_gate, buf_iw_gate);
     }
 }
 
