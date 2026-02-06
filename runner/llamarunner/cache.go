@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"reflect"
 	"time"
 
 	"github.com/ollama/ollama/llama"
@@ -181,18 +180,32 @@ func (c *InputCache) findBestCacheSlot(prompt []input) (*InputCacheSlot, int, er
 	return oldestSlot, longest, nil
 }
 
+// inputsEqual compares two inputs without using reflect.DeepEqual for better performance.
+// For the common case of token-only inputs (no embeddings), this avoids the overhead
+// of reflection entirely, which is significant when comparing long prompt prefixes.
+func inputsEqual(a, b input) bool {
+	if a.token != b.token {
+		return false
+	}
+	if len(a.embed) != len(b.embed) {
+		return false
+	}
+	for i := range a.embed {
+		if a.embed[i] != b.embed[i] {
+			return false
+		}
+	}
+	return true
+}
+
 func countCommonPrefix(a []input, b []input) int {
+	n := min(len(a), len(b))
+
 	var count int
-
-	for i := range a {
-		if i >= len(b) {
+	for i := range n {
+		if !inputsEqual(a[i], b[i]) {
 			break
 		}
-
-		if !reflect.DeepEqual(a[i], b[i]) {
-			break
-		}
-
 		count++
 	}
 

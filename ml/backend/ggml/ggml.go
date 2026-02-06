@@ -118,6 +118,26 @@ type Backend struct {
 	weightBuffers map[*C.struct_ggml_context]C.ggml_backend_buffer_t
 }
 
+// isTensorOnGPU returns true if the named tensor is assigned to a GPU device.
+// Used to prioritize loading GPU tensors first for faster time-to-first-inference.
+func (b *Backend) isTensorOnGPU(name string) bool {
+	// Check which layer this tensor belongs to
+	if fields := strings.FieldsFunc(name, func(r rune) bool { return !unicode.IsNumber(r) }); len(fields) > 0 {
+		if layerIdx, err := strconv.Atoi(fields[0]); err == nil {
+			if ld, ok := b.layers[layerIdx]; ok {
+				devType := C.ggml_backend_dev_type(ld.d)
+				return devType == C.GGML_BACKEND_DEVICE_TYPE_GPU || devType == C.GGML_BACKEND_DEVICE_TYPE_IGPU
+			}
+		}
+	}
+	// Output layer tensors
+	if strings.HasPrefix(name, "output") || strings.HasPrefix(name, "output_norm") {
+		devType := C.ggml_backend_dev_type(b.output)
+		return devType == C.GGML_BACKEND_DEVICE_TYPE_GPU || devType == C.GGML_BACKEND_DEVICE_TYPE_IGPU
+	}
+	return false
+}
+
 var once sync.Once
 
 func New(modelPath string, params ml.BackendParams) (ml.Backend, error) {
@@ -496,9 +516,41 @@ func (b *Backend) Load(ctx context.Context, progress func(float32)) error {
 	var doneBytes atomic.Uint64
 	totalBytes := uint64(b.meta.Length) - b.meta.Tensors().Offset
 
+	// Sort tensors so GPU-bound tensors are loaded first for faster time-to-first-inference.
+	// Within each group (GPU vs CPU), sort by offset to maximize sequential disk reads.
+	items := b.meta.Tensors().Items()
+	sortedTensors := make([]*fsggml.Tensor, len(items))
+	copy(sortedTensors, items)
+	slices.SortFunc(sortedTensors, func(a, c *fsggml.Tensor) int {
+		aGPU := b.isTensorOnGPU(a.Name)
+		cGPU := b.isTensorOnGPU(c.Name)
+		if aGPU != cGPU {
+			if aGPU {
+				return -1
+			}
+			return 1
+		}
+		return cmp.Compare(a.Offset, c.Offset)
+	})
+
+	// Use adaptive I/O buffer size based on tensor sizes for better throughput.
+	// Larger buffers reduce syscall overhead and improve sequential read performance.
+	adaptiveBufferSize := func(tensorSize uint64) int {
+		switch {
+		case tensorSize > 256*format.MebiByte:
+			return 2 * int(format.MebiByte) // 2 MiB for very large tensors
+		case tensorSize > 16*format.MebiByte:
+			return 1 * int(format.MebiByte) // 1 MiB for large tensors
+		case tensorSize > 1*format.MebiByte:
+			return 512 * int(format.KibiByte) // 512 KiB for medium tensors
+		default:
+			return 128 * int(format.KibiByte) // 128 KiB for small tensors
+		}
+	}
+
 	g, ctx := errgroup.WithContext(ctx)
 	g.SetLimit(runtime.GOMAXPROCS(0))
-	for _, t := range b.meta.Tensors().Items() {
+	for _, t := range sortedTensors {
 		g.Go(func() error {
 			tts := make([]*C.struct_ggml_tensor, max(1, len(b.tensorLoadTargets[t.Name])))
 			for i := range tts {
@@ -568,7 +620,8 @@ func (b *Backend) Load(ctx context.Context, progress func(float32)) error {
 				// source is bf16, target is ggml fp32
 
 				// data is bf16 but we need to convert to fp32
-				bts := make([]byte, 128*format.KibiByte)
+				bufSize := adaptiveBufferSize(t.Size())
+				bts := make([]byte, bufSize)
 				var e uint64
 				for e < t.Elements() {
 					// Stop if either the parent context has been canceled or if any of the other tensors returned an error
@@ -594,7 +647,8 @@ func (b *Backend) Load(ctx context.Context, progress func(float32)) error {
 				return nil
 			}
 
-			bts := make([]byte, 128*format.KibiByte)
+			bufSize := adaptiveBufferSize(t.Size())
+			bts := make([]byte, bufSize)
 
 			var s uint64
 			for s < t.Size() {
