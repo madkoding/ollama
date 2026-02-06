@@ -426,11 +426,11 @@ func deleteUnusedLayers(deleteMap map[string]struct{}) error {
 	for k := range deleteMap {
 		fp, err := manifest.BlobsPath(k)
 		if err != nil {
-			slog.Info(fmt.Sprintf("couldn't get file path for '%s': %v", k, err))
+			slog.Info("couldn't get file path for blob", "digest", k, "error", err)
 			continue
 		}
 		if err := os.Remove(fp); err != nil {
-			slog.Info(fmt.Sprintf("couldn't remove file '%s': %v", fp, err))
+			slog.Info("couldn't remove file", "path", fp, "error", err)
 			continue
 		}
 	}
@@ -447,7 +447,7 @@ func PruneLayers() error {
 
 	blobs, err := os.ReadDir(p)
 	if err != nil {
-		slog.Info(fmt.Sprintf("couldn't read dir '%s': %v", p, err))
+		slog.Info("couldn't read dir", "path", p, "error", err)
 		return err
 	}
 
@@ -470,14 +470,14 @@ func PruneLayers() error {
 		deleteMap[name] = struct{}{}
 	}
 
-	slog.Info(fmt.Sprintf("total blobs: %d", len(deleteMap)))
+	slog.Info("total blobs", "count", len(deleteMap))
 
 	if err := deleteUnusedLayers(deleteMap); err != nil {
-		slog.Error(fmt.Sprintf("couldn't remove unused layers: %v", err))
+		slog.Error("couldn't remove unused layers", "error", err)
 		return nil
 	}
 
-	slog.Info(fmt.Sprintf("total unused blobs removed: %d", len(deleteMap)))
+	slog.Info("total unused blobs removed", "count", len(deleteMap))
 
 	return nil
 }
@@ -522,7 +522,7 @@ func PushModel(ctx context.Context, name string, regOpts *registryOptions, fn fu
 
 	for _, layer := range layers {
 		if err := uploadBlob(ctx, n, layer, regOpts, fn); err != nil {
-			slog.Info(fmt.Sprintf("error uploading blob: %v", err))
+			slog.Info("error uploading blob", "error", err)
 			return err
 		}
 	}
@@ -621,7 +621,7 @@ func PullModel(ctx context.Context, name string, regOpts *registryOptions, fn fu
 					return err
 				}
 				if err := os.Remove(fp); err != nil {
-					slog.Info(fmt.Sprintf("couldn't remove file with digest mismatch '%s': %v", fp, err))
+					slog.Info("couldn't remove file with digest mismatch", "path", fp, "error", err)
 				}
 			}
 			return err
@@ -650,7 +650,7 @@ func PullModel(ctx context.Context, name string, regOpts *registryOptions, fn fu
 
 	err = os.WriteFile(fp, manifestJSON, 0o644)
 	if err != nil {
-		slog.Info(fmt.Sprintf("couldn't write to %s", fp))
+		slog.Info("couldn't write manifest", "path", fp, "error", err)
 		return err
 	}
 
@@ -845,7 +845,7 @@ func makeRequestWithRetry(ctx context.Context, method string, requestURL *url.UR
 		resp, err := makeRequest(ctx, method, requestURL, headers, body, regOpts)
 		if err != nil {
 			if !errors.Is(err, context.Canceled) {
-				slog.Info(fmt.Sprintf("request failed: %v", err))
+				slog.Info("request failed", "error", err)
 			}
 
 			return nil, err

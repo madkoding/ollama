@@ -876,7 +876,7 @@ nextOperation:
 					backoff += 0.1
 				}
 
-				slog.Info("model layout did not fit, applying backoff", "backoff", fmt.Sprintf("%.2f", backoff))
+				slog.Info("model layout did not fit, applying backoff", "backoff", backoff)
 			}
 		}
 	}
@@ -1385,13 +1385,13 @@ func (s *llmServer) WaitUntilRunning(ctx context.Context) error {
 		}
 		switch status {
 		case ServerStatusReady:
-			slog.Info(fmt.Sprintf("llama runner started in %0.2f seconds", time.Since(s.loadStart).Seconds()))
+			slog.Info("llama runner started", "elapsed_seconds", time.Since(s.loadStart).Seconds())
 			return nil
 		default:
 			lastStatus = status
 			// Reset the timer as long as we're making forward progress on the load
 			if priorProgress != s.loadProgress {
-				slog.Debug(fmt.Sprintf("model load progress %0.2f", s.loadProgress))
+				slog.Debug("model load progress", "progress", s.loadProgress)
 				stallTimer = time.Now().Add(stallDuration)
 			} else if !fullyLoaded && int(s.loadProgress*100.0) >= 100 {
 				slog.Debug("model load completed, waiting for server to become available", "status", status)

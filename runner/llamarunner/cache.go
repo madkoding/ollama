@@ -33,7 +33,7 @@ func NewInputCache(lc *llama.Context, kvSize int, numSlots int, multiUserCache b
 	for i := range slots {
 		slots[i] = InputCacheSlot{
 			Id:     i,
-			Inputs: make([]input, 0),
+			Inputs: nil,
 		}
 	}
 

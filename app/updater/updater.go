@@ -88,7 +88,7 @@ func (u *Updater) checkForUpdate(ctx context.Context) (bool, UpdateResponse) {
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL.String(), nil)
 	if err != nil {
-		slog.Warn(fmt.Sprintf("failed to check for update: %s", err))
+		slog.Warn("failed to check for update", "error", err)
 		return false, updateResp
 	}
 	if signature != "" {
@@ -100,7 +100,7 @@ func (u *Updater) checkForUpdate(ctx context.Context) (bool, UpdateResponse) {
 	slog.Debug("checking for available update", "requestURL", requestURL, "User-Agent", ua)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		slog.Warn(fmt.Sprintf("failed to check for update: %s", err))
+		slog.Warn("failed to check for update", "error", err)
 		return false, updateResp
 	}
 	defer resp.Body.Close()
@@ -111,16 +111,16 @@ func (u *Updater) checkForUpdate(ctx context.Context) (bool, UpdateResponse) {
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		slog.Warn(fmt.Sprintf("failed to read body response: %s", err))
+		slog.Warn("failed to read body response", "error", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		slog.Info(fmt.Sprintf("check update error %d - %.96s", resp.StatusCode, string(body)))
+		slog.Info("check update error", "status_code", resp.StatusCode, "body", string(body))
 		return false, updateResp
 	}
 	err = json.Unmarshal(body, &updateResp)
 	if err != nil {
-		slog.Warn(fmt.Sprintf("malformed response checking for update: %s", err))
+		slog.Warn("malformed response checking for update", "error", err)
 		return false, updateResp
 	}
 	// Extract the version string from the URL in the github release artifact path
@@ -230,7 +230,7 @@ func cleanupOldDownloads(stageDir string) {
 		// Expected behavior on first run
 		return
 	} else if err != nil {
-		slog.Warn(fmt.Sprintf("failed to list stage dir: %s", err))
+		slog.Warn("failed to list stage dir", "error", err)
 		return
 	}
 	for _, file := range files {
@@ -238,7 +238,7 @@ func cleanupOldDownloads(stageDir string) {
 		slog.Debug("cleaning up old download: " + fullname)
 		err = os.RemoveAll(fullname)
 		if err != nil {
-			slog.Warn(fmt.Sprintf("failed to cleanup stale update download %s", err))
+			slog.Warn("failed to cleanup stale update download", "error", err)
 		}
 	}
 }
@@ -257,11 +257,11 @@ func (u *Updater) StartBackgroundUpdaterChecker(ctx context.Context, cb func(str
 			if available {
 				err := u.DownloadNewRelease(ctx, resp)
 				if err != nil {
-					slog.Error(fmt.Sprintf("failed to download new release: %s", err))
+					slog.Error("failed to download new release", "error", err)
 				} else {
 					err = cb(resp.UpdateVersion)
 					if err != nil {
-						slog.Warn(fmt.Sprintf("failed to register update available with tray: %s", err))
+						slog.Warn("failed to register update available with tray", "error", err)
 					}
 				}
 			}

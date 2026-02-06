@@ -22,7 +22,7 @@ func newLazy[T any](f *File, fn func() (T, error)) (*lazy[T], error) {
 		return nil, err
 	}
 
-	it.values = make([]T, 0)
+	it.values = make([]T, 0, it.count)
 	it.next, it.stop = iter.Pull(func(yield func(T) bool) {
 		for i := range it.count {
 			t, err := fn()
