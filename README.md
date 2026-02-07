@@ -244,11 +244,23 @@ echo "Your text to embed" | ollama run embeddinggemma
 
 ## Building
 
-See the [developer guide](https://github.com/ollama/ollama/blob/main/docs/development.md)
+Install prerequisites:
+- [Go 1.24+](https://go.dev/dl/)
+- [CMake](https://cmake.org/download/)
+- C/C++ compiler (GCC or Clang)
+- GPU SDK (optional): [CUDA](https://developer.nvidia.com/cuda-toolkit) for NVIDIA, [ROCm](https://rocm.docs.amd.com/) for AMD
+
+Build the project:
+
+```shell
+cmake --preset CPU
+cmake --build --preset CPU --parallel
+go build .
+```
 
 ### Running local builds
 
-Next, start the server:
+Start the server:
 
 ```shell
 ./ollama serve
@@ -292,6 +304,55 @@ cmake --build --preset 'MLX CUDA 13' --parallel
 cmake --install build --component MLX
 ```
 
+## Project Structure
+
+```
+ollama/
+├── api/          # Go client library and API type definitions
+├── backend/      # ML inference backends (llama.cpp) and hardware discovery
+├── cmd/          # CLI implementation (run, pull, create, chat, etc.)
+├── compat/       # API compatibility layers (OpenAI, Anthropic)
+├── engine/       # Inference runner, KV cache, thinking, tool calling, sampling
+├── fs/           # GGML/GGUF file format handling
+├── internal/     # Shared utilities (auth, config, logging, progress)
+├── model/        # Model architectures, conversion, templates, tokenizers
+├── server/       # HTTP API server and route handlers
+├── x/            # Experimental features (agents, image generation, tools)
+├── main.go       # Entry point
+└── Dockerfile    # Multi-stage Docker build
+```
+
+## Experimental Features
+
+> [!WARNING]
+> Features in `x/` are experimental and may change or be removed without notice.
+
+### Image Generation
+
+Ollama supports experimental local image generation when built with MLX:
+
+```shell
+curl http://localhost:11434/v1/images/generations -d '{
+  "model": "z-image",
+  "prompt": "A cat sitting on a windowsill at sunset"
+}'
+```
+
+### Agent Tools
+
+Ollama includes an experimental agent framework with built-in tools:
+
+- **bash** - Execute shell commands
+- **web_search** - Search the web
+- **web_fetch** - Fetch and extract content from web pages
+
+### API Compatibility
+
+In addition to the native Ollama API, compatibility layers are available for:
+
+- **OpenAI API** (`/v1/chat/completions`, `/v1/completions`, `/v1/embeddings`, `/v1/models`)
+- **Anthropic API** (`/v1/messages`)
+
 ## REST API
 
 Ollama has a REST API for running and managing models.
@@ -316,7 +377,54 @@ curl http://localhost:11434/api/chat -d '{
 }'
 ```
 
-See the [API documentation](./docs/api.md) for all endpoints.
+### Generate embeddings
+
+```shell
+curl http://localhost:11434/api/embed -d '{
+  "model": "all-minilm",
+  "input": "Why is the sky blue?"
+}'
+```
+
+### List local models
+
+```shell
+curl http://localhost:11434/api/tags
+```
+
+### OpenAI Compatibility
+
+Ollama provides built-in compatibility with the OpenAI API, making it easy to use existing tools and libraries:
+
+```shell
+curl http://localhost:11434/v1/chat/completions -d '{
+  "model": "llama3.2",
+  "messages": [
+    { "role": "user", "content": "why is the sky blue?" }
+  ]
+}'
+```
+
+**Available endpoints:**
+
+| Endpoint | OpenAI Compatible | Description |
+| --- | --- | --- |
+| `/api/generate` | | Generate a completion |
+| `/api/chat` | | Generate a chat completion |
+| `/api/embed` | | Generate embeddings |
+| `/api/show` | | Show model information |
+| `/api/create` | | Create a model |
+| `/api/pull` | | Pull a model |
+| `/api/push` | | Push a model |
+| `/api/copy` | | Copy a model |
+| `/api/delete` | | Delete a model |
+| `/api/tags` | | List local models |
+| `/api/ps` | | List running models |
+| `/api/version` | | Get version |
+| `/v1/chat/completions` | Yes | Chat completions |
+| `/v1/completions` | Yes | Text completions |
+| `/v1/embeddings` | Yes | Embeddings |
+| `/v1/models` | Yes | List models |
 
 ## Community Integrations
 
