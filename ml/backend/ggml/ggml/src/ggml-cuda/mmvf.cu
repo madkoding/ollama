@@ -98,13 +98,12 @@ static __global__ void mul_mat_vec_f(
 
     if constexpr (std::is_same_v<T, float>) {
         const float2 * x2 = (const float2 *) x;
-        const float2 * gate_x2 = nullptr;
+        [[maybe_unused]] const float2 * gate_x2 = nullptr;
         if constexpr (has_fusion) {
             if (use_gate) {
                 gate_x2 = (const float2 *) gate_x;
             }
         }
-        GGML_UNUSED(gate_x2);
 
         for (int col2 = tid; col2 < ncols2; col2 += block_size) {
             const float2 tmpx = x2[col2];
@@ -131,13 +130,12 @@ static __global__ void mul_mat_vec_f(
         }
     } else if constexpr (std::is_same_v<T, half>) {
         const half2 * x2 = (const half2 *) x;
-        const half2 * gate_x2 = nullptr;
+        [[maybe_unused]] const half2 * gate_x2 = nullptr;
         if constexpr (has_fusion) {
             if (use_gate) {
                 gate_x2 = (const half2 *) gate_x;
             }
         }
-        GGML_UNUSED(gate_x2);
 
         if (std::is_same_v<type_acc, float>) {
             for (int col2 = tid; col2 < ncols2; col2 += block_size) {
@@ -209,13 +207,12 @@ static __global__ void mul_mat_vec_f(
 //TODO: add support for ggml_cuda_mad for hip_bfloat162
 #if defined(GGML_USE_HIP)
         const int * x2 = (const int *) x;
-        const int * gate_x2 = nullptr;
+        [[maybe_unused]] const int * gate_x2 = nullptr;
         if constexpr (has_fusion) {
             if (use_gate) {
                 gate_x2 = (const int *) gate_x;
             }
         }
-        GGML_UNUSED(gate_x2);
         for (int col2 = tid; col2 < ncols2; col2 += block_size) {
             const int tmpx = x2[col2];
             int tmpx_gate = 0;
@@ -244,13 +241,12 @@ static __global__ void mul_mat_vec_f(
         }
 #else
         const nv_bfloat162 * x2 = (const nv_bfloat162 *) x;
-        const nv_bfloat162 * gate_x2 = nullptr;
+        [[maybe_unused]] const nv_bfloat162 * gate_x2 = nullptr;
         if constexpr (has_fusion) {
             if (use_gate) {
                 gate_x2 = (const nv_bfloat162 *) gate_x;
             }
         }
-        GGML_UNUSED(gate_x2);
         for (int col2 = tid; col2 < ncols2; col2 += block_size) {
             const nv_bfloat162 tmpx = x2[col2];
             nv_bfloat162 tmpx_gate;
