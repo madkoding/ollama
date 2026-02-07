@@ -306,7 +306,7 @@ jobs:
   windows-app:
     runs-on: windows-latest
     environment: release
-    needs: [windows-build, windows-depends]
+    needs: [setup-environment, windows-build, windows-depends]
     env:
       GOFLAGS: ${{ needs.setup-environment.outputs.GOFLAGS }}
       VERSION: ${{ needs.setup-environment.outputs.VERSION }}
@@ -314,8 +314,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: google-github-actions/auth@v2
+        if: ${{ secrets.GOOGLE_SIGNING_CREDENTIALS != '' }}
         with:
-          project_id: ollama
           credentials_json: ${{ secrets.GOOGLE_SIGNING_CREDENTIALS }}
       - run: |
           $ErrorActionPreference = "Stop"
