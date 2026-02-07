@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/manifest"
+	"github.com/ollama/ollama/model/manifest"
 )
 
 func TestConvertFromSafetensors(t *testing.T) {

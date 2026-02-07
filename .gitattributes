@@ -1,28 +1,28 @@
-llama/**/*.cpp linguist-vendored
-llama/**/*.hpp linguist-vendored
-llama/**/*.h linguist-vendored
-llama/**/*.c linguist-vendored
-llama/**/*.cu linguist-vendored
-llama/**/*.cuh linguist-vendored
-llama/**/*.m linguist-vendored
-llama/**/*.metal linguist-vendored
+backend/llama/**/*.cpp linguist-vendored
+backend/llama/**/*.hpp linguist-vendored
+backend/llama/**/*.h linguist-vendored
+backend/llama/**/*.c linguist-vendored
+backend/llama/**/*.cu linguist-vendored
+backend/llama/**/*.cuh linguist-vendored
+backend/llama/**/*.m linguist-vendored
+backend/llama/**/*.metal linguist-vendored
 
-ml/backend/**/*.c linguist-vendored
-ml/backend/**/*.h linguist-vendored
-ml/backend/**/*.cpp linguist-vendored
-ml/backend/**/*.hpp linguist-vendored
-ml/backend/**/*.cu linguist-vendored
-ml/backend/**/*.cuh linguist-vendored
-ml/backend/**/*.m linguist-vendored
-ml/backend/**/*.metal linguist-vendored
-ml/backend/**/*.comp linguist-vendored
-ml/backend/**/*.glsl linguist-vendored
-ml/backend/**/CMakeLists.txt linguist-vendored
+backend/ml/backend/**/*.c linguist-vendored
+backend/ml/backend/**/*.h linguist-vendored
+backend/ml/backend/**/*.cpp linguist-vendored
+backend/ml/backend/**/*.hpp linguist-vendored
+backend/ml/backend/**/*.cu linguist-vendored
+backend/ml/backend/**/*.cuh linguist-vendored
+backend/ml/backend/**/*.m linguist-vendored
+backend/ml/backend/**/*.metal linguist-vendored
+backend/ml/backend/**/*.comp linguist-vendored
+backend/ml/backend/**/*.glsl linguist-vendored
+backend/ml/backend/**/CMakeLists.txt linguist-vendored
 
 app/webview linguist-vendored
 
-llama/build-info.cpp linguist-generated
-ml/backend/ggml/ggml/src/ggml-metal/ggml-metal-embed.s linguist-generated
+backend/llama/build-info.cpp linguist-generated
+backend/ml/backend/ggml/ggml/src/ggml-metal/ggml-metal-embed.s linguist-generated
 
 * text=auto
 *.go text eol=lf

@@ -20,9 +20,9 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/format"
-	"github.com/ollama/ollama/manifest"
-	"github.com/ollama/ollama/types/model"
+	"github.com/ollama/ollama/internal/format"
+	"github.com/ollama/ollama/model/manifest"
+	"github.com/ollama/ollama/internal/types/model"
 )
 
 var blobUploadManager sync.Map

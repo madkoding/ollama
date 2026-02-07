@@ -21,9 +21,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/envconfig"
-	"github.com/ollama/ollama/progress"
-	"github.com/ollama/ollama/readline"
+	"github.com/ollama/ollama/internal/envconfig"
+	"github.com/ollama/ollama/internal/progress"
+	"github.com/ollama/ollama/internal/readline"
 )
 
 // ImageGenOptions holds options for image generation.

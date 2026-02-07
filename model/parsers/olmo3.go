@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/logutil"
+	"github.com/ollama/ollama/internal/logutil"
 )
 
 type olmo3ParserState int

@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/ollama/ollama/fs/ggml"
-	"github.com/ollama/ollama/template"
-	"github.com/ollama/ollama/types/model"
+	"github.com/ollama/ollama/model/template"
+	"github.com/ollama/ollama/internal/types/model"
 )
 
 func TestModelCapabilities(t *testing.T) {

@@ -18,7 +18,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/types/model"
+	"github.com/ollama/ollama/internal/types/model"
 )
 
 func TestShowInfo(t *testing.T) {

@@ -1,0 +1,23 @@
+package runner
+
+import (
+	"github.com/ollama/ollama/engine/runner/llamarunner"
+	"github.com/ollama/ollama/engine/runner/ollamarunner"
+	"github.com/ollama/ollama/x/imagegen"
+)
+
+func Execute(args []string) error {
+	if args[0] == "runner" {
+		args = args[1:]
+	}
+
+	if len(args) > 0 {
+		switch args[0] {
+		case "--ollama-engine":
+			return ollamarunner.Execute(args[1:])
+		case "--imagegen-engine":
+			return imagegen.Execute(args[1:])
+		}
+	}
+	return llamarunner.Execute(args)
+}

@@ -5,13 +5,13 @@ import (
 	"math"
 
 	"github.com/ollama/ollama/fs"
-	"github.com/ollama/ollama/ml"
-	"github.com/ollama/ollama/ml/nn"
-	"github.com/ollama/ollama/ml/nn/pooling"
-	"github.com/ollama/ollama/ml/nn/rope"
+	"github.com/ollama/ollama/backend/ml"
+	"github.com/ollama/ollama/backend/ml/nn"
+	"github.com/ollama/ollama/backend/ml/nn/pooling"
+	"github.com/ollama/ollama/backend/ml/nn/rope"
 	"github.com/ollama/ollama/model"
 	"github.com/ollama/ollama/model/input"
-	"github.com/ollama/ollama/tokenizer"
+	"github.com/ollama/ollama/model/tokenizer"
 )
 
 type Model struct {

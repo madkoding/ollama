@@ -26,10 +26,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/ollama/ollama/api"
 	"github.com/ollama/ollama/fs/ggml"
-	"github.com/ollama/ollama/openai"
+	"github.com/ollama/ollama/compat/openai"
 	"github.com/ollama/ollama/server/internal/client/ollama"
-	"github.com/ollama/ollama/types/model"
-	"github.com/ollama/ollama/version"
+	"github.com/ollama/ollama/internal/types/model"
+	"github.com/ollama/ollama/internal/version"
 )
 
 func createTestFile(t *testing.T, name string) (string, string) {

@@ -3,7 +3,7 @@ package glm4moelite
 import (
 	"testing"
 
-	"github.com/ollama/ollama/ml/nn"
+	"github.com/ollama/ollama/backend/ml/nn"
 )
 
 func TestValidate(t *testing.T) {

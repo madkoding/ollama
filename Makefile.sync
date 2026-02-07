@@ -1,5 +1,5 @@
 UPSTREAM=https://github.com/ggml-org/llama.cpp.git
-WORKDIR=llama/vendor
+WORKDIR=backend/llama/vendor
 FETCH_HEAD=ec98e2002
 
 .PHONY: help
@@ -15,30 +15,30 @@ help:
 	@echo "    make -f $(lastword $(MAKEFILE_LIST)) clean apply-patches sync"
 
 .PHONY: sync
-sync: llama/build-info.cpp ml/backend/ggml/ggml/src/ggml-metal/ggml-metal-embed.metal
+sync: backend/llama/build-info.cpp backend/ml/backend/ggml/ggml/src/ggml-metal/ggml-metal-embed.metal
 
-llama/build-info.cpp: llama/build-info.cpp.in llama/llama.cpp
+backend/llama/build-info.cpp: backend/llama/build-info.cpp.in backend/llama/llama.cpp
 	sed -e 's|@FETCH_HEAD@|$(FETCH_HEAD)|' <$< >$@
 
-ml/backend/ggml/ggml/src/ggml-metal/ggml-metal-embed.metal: ml/backend/ggml/ggml
+backend/ml/backend/ggml/ggml/src/ggml-metal/ggml-metal-embed.metal: backend/ml/backend/ggml/ggml
 	go generate ./$(@D)
 
-.PHONY: llama/llama.cpp
-llama/llama.cpp: llama/vendor
+.PHONY: backend/llama/llama.cpp
+backend/llama/llama.cpp: backend/llama/vendor
 	rsync -arvzc --delete -f "include LICENSE" -f "merge $@/.rsync-filter" $(addprefix $<,/LICENSE /) $@
 
-.PHONY: ml/backend/ggml/ggml
-ml/backend/ggml/ggml: llama/vendor
+.PHONY: backend/ml/backend/ggml/ggml
+backend/ml/backend/ggml/ggml: backend/llama/vendor
 	rsync -arvzc --delete -f "include LICENSE" -f "merge $@/.rsync-filter" $(addprefix $<,/LICENSE /ggml/) $@
 
-PATCHES=$(wildcard llama/patches/*.patch)
+PATCHES=$(wildcard backend/llama/patches/*.patch)
 PATCHED=$(join $(dir $(PATCHES)), $(addsuffix ed, $(addprefix ., $(notdir $(PATCHES)))))
 
 .PHONY: apply-patches
 .NOTPARALLEL:
 apply-patches: $(PATCHED)
 
-llama/patches/.%.patched: llama/patches/%.patch
+backend/llama/patches/.%.patched: backend/llama/patches/%.patch
 	@if git -c user.name=nobody -c 'user.email=<>' -C $(WORKDIR) am -3 $(realpath $<); then \
 		touch $@;                                                                           \
 	else                                                                                    \
@@ -58,7 +58,7 @@ $(WORKDIR):
 	git clone $(UPSTREAM) $(WORKDIR)
 
 .PHONY: format-patches
-format-patches: llama/patches
+format-patches: backend/llama/patches
 	git -C $(WORKDIR) format-patch \
 		--no-signature \
 		--no-numbered \
@@ -69,7 +69,7 @@ format-patches: llama/patches
 .PHONY: clean
 clean: checkout
 	@git -C $(WORKDIR) am --abort || true
-	$(RM) llama/patches/.*.patched
+	$(RM) backend/llama/patches/.*.patched
 
 .PHONY: print-base
 print-base:

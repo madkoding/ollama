@@ -21,15 +21,15 @@ import (
 	"strings"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/envconfig"
+	"github.com/ollama/ollama/internal/envconfig"
 	"github.com/ollama/ollama/fs/gguf"
-	"github.com/ollama/ollama/manifest"
+	"github.com/ollama/ollama/model/manifest"
 	"github.com/ollama/ollama/model/parsers"
-	"github.com/ollama/ollama/parser"
-	"github.com/ollama/ollama/template"
-	"github.com/ollama/ollama/thinking"
-	"github.com/ollama/ollama/types/model"
-	"github.com/ollama/ollama/version"
+	"github.com/ollama/ollama/model/parser"
+	"github.com/ollama/ollama/model/template"
+	"github.com/ollama/ollama/engine/thinking"
+	"github.com/ollama/ollama/internal/types/model"
+	"github.com/ollama/ollama/internal/version"
 	"github.com/ollama/ollama/x/imagegen/transfer"
 )
 

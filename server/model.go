@@ -14,9 +14,9 @@ import (
 
 	"github.com/ollama/ollama/api"
 	"github.com/ollama/ollama/fs/ggml"
-	"github.com/ollama/ollama/manifest"
-	"github.com/ollama/ollama/template"
-	"github.com/ollama/ollama/types/model"
+	"github.com/ollama/ollama/model/manifest"
+	"github.com/ollama/ollama/model/template"
+	"github.com/ollama/ollama/internal/types/model"
 )
 
 var (

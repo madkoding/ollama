@@ -9,7 +9,7 @@ import (
 	"runtime"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/envconfig"
+	"github.com/ollama/ollama/internal/envconfig"
 )
 
 // Claude implements Runner and AliasConfigurer for Claude Code integration

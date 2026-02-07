@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/ollama/ollama/fs/ggml"
-	"github.com/ollama/ollama/kvcache"
-	"github.com/ollama/ollama/ml"
+	"github.com/ollama/ollama/engine/kvcache"
+	"github.com/ollama/ollama/backend/ml"
 )
 
 func newTestBackend(tb testing.TB) ml.Backend {

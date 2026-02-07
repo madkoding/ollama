@@ -9,7 +9,7 @@ import (
 	"unicode"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/logutil"
+	"github.com/ollama/ollama/internal/logutil"
 )
 
 type glm46ParserState int

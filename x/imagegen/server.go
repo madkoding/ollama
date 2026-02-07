@@ -21,8 +21,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ollama/ollama/llm"
-	"github.com/ollama/ollama/ml"
+	"github.com/ollama/ollama/backend/llm"
+	"github.com/ollama/ollama/backend/ml"
 	"github.com/ollama/ollama/x/imagegen/manifest"
 )
 

@@ -18,10 +18,10 @@ import (
 
 	"github.com/ollama/ollama/api"
 	"github.com/ollama/ollama/fs/ggml"
-	"github.com/ollama/ollama/llm"
-	"github.com/ollama/ollama/manifest"
-	"github.com/ollama/ollama/ml"
-	"github.com/ollama/ollama/types/model"
+	"github.com/ollama/ollama/backend/llm"
+	"github.com/ollama/ollama/model/manifest"
+	"github.com/ollama/ollama/backend/ml"
+	"github.com/ollama/ollama/internal/types/model"
 )
 
 // testPropsMap creates a ToolPropertiesMap from a map (convenience function for tests)
