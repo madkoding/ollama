@@ -12,6 +12,6 @@ build
 test_data
 *.crt
 __debug_bin*
-llama/build
-llama/vendor
+backend/llama/build
+backend/llama/vendor
 /ollama

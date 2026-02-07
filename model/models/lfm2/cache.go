@@ -3,8 +3,8 @@ package lfm2
 import (
 	"slices"
 
-	"github.com/ollama/ollama/kvcache"
-	"github.com/ollama/ollama/ml"
+	"github.com/ollama/ollama/engine/kvcache"
+	"github.com/ollama/ollama/backend/ml"
 	"github.com/ollama/ollama/model/input"
 )
 

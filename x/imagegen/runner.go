@@ -15,7 +15,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ollama/ollama/envconfig"
+	"github.com/ollama/ollama/internal/envconfig"
 	"github.com/ollama/ollama/x/imagegen/mlx"
 )
 

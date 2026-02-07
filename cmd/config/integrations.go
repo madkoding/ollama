@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/progress"
+	"github.com/ollama/ollama/internal/progress"
 	"github.com/spf13/cobra"
 )
 

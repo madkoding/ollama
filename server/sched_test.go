@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/format"
+	"github.com/ollama/ollama/internal/format"
 	"github.com/ollama/ollama/fs/ggml"
-	"github.com/ollama/ollama/llm"
-	"github.com/ollama/ollama/ml"
+	"github.com/ollama/ollama/backend/llm"
+	"github.com/ollama/ollama/backend/ml"
 )
 
 func TestMain(m *testing.M) {

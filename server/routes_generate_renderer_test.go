@@ -13,8 +13,8 @@ import (
 
 	"github.com/ollama/ollama/api"
 	"github.com/ollama/ollama/fs/ggml"
-	"github.com/ollama/ollama/llm"
-	"github.com/ollama/ollama/ml"
+	"github.com/ollama/ollama/backend/llm"
+	"github.com/ollama/ollama/backend/ml"
 )
 
 // TestGenerateWithBuiltinRenderer tests that api/generate uses built-in renderers

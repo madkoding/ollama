@@ -10,7 +10,7 @@ import (
 	"unsafe"
 
 	fsggml "github.com/ollama/ollama/fs/ggml"
-	"github.com/ollama/ollama/ml/backend/ggml"
+	"github.com/ollama/ollama/backend/ml/backend/ggml"
 )
 
 type quantizer struct {

@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/auth"
+	"github.com/ollama/ollama/internal/auth"
 )
 
 type registryChallenge struct {

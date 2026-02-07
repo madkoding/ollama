@@ -1,8 +1,8 @@
 package lfm2
 
 import (
-	"github.com/ollama/ollama/ml"
-	"github.com/ollama/ollama/ml/nn"
+	"github.com/ollama/ollama/backend/ml"
+	"github.com/ollama/ollama/backend/ml/nn"
 )
 
 type shortConvKernel struct {

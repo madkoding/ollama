@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/envconfig"
+	"github.com/ollama/ollama/internal/envconfig"
 )
 
 // OpenCode implements Runner and Editor for OpenCode integration

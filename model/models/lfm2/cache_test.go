@@ -3,8 +3,8 @@ package lfm2
 import (
 	"testing"
 
-	"github.com/ollama/ollama/kvcache"
-	"github.com/ollama/ollama/ml"
+	"github.com/ollama/ollama/engine/kvcache"
+	"github.com/ollama/ollama/backend/ml"
 )
 
 // TestHybridCache tests verify the slot management logic of HybridCache.

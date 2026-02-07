@@ -6,7 +6,7 @@ import (
 	"math"
 
 	"github.com/ollama/ollama/fs"
-	"github.com/ollama/ollama/ml"
+	"github.com/ollama/ollama/backend/ml"
 	"github.com/ollama/ollama/model/imageproc"
 )
 

@@ -10,7 +10,7 @@ import (
 	"slices"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/envconfig"
+	"github.com/ollama/ollama/internal/envconfig"
 )
 
 // Droid implements Runner and Editor for Droid integration

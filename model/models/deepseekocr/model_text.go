@@ -3,10 +3,10 @@ package deepseekocr
 import (
 	"math"
 
-	"github.com/ollama/ollama/kvcache"
-	"github.com/ollama/ollama/ml"
-	"github.com/ollama/ollama/ml/nn"
-	"github.com/ollama/ollama/ml/nn/rope"
+	"github.com/ollama/ollama/engine/kvcache"
+	"github.com/ollama/ollama/backend/ml"
+	"github.com/ollama/ollama/backend/ml/nn"
+	"github.com/ollama/ollama/backend/ml/nn/rope"
 )
 
 type textModel struct {

@@ -22,11 +22,11 @@ import (
 	gocmpopts "github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/convert"
-	"github.com/ollama/ollama/envconfig"
+	"github.com/ollama/ollama/model/convert"
+	"github.com/ollama/ollama/internal/envconfig"
 	"github.com/ollama/ollama/fs/ggml"
-	"github.com/ollama/ollama/manifest"
-	"github.com/ollama/ollama/types/model"
+	"github.com/ollama/ollama/model/manifest"
+	"github.com/ollama/ollama/internal/types/model"
 )
 
 var stream bool = false

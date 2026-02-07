@@ -15,9 +15,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ollama/ollama/manifest"
-	"github.com/ollama/ollama/progress"
-	"github.com/ollama/ollama/types/model"
+	"github.com/ollama/ollama/model/manifest"
+	"github.com/ollama/ollama/internal/progress"
+	"github.com/ollama/ollama/internal/types/model"
 	"github.com/ollama/ollama/x/create"
 )
 

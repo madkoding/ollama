@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/types/model"
+	"github.com/ollama/ollama/internal/types/model"
 )
 
 // Test that a warning is printed when thinking is requested but not supported.

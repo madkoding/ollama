@@ -17,13 +17,13 @@ import (
 
 	"github.com/ollama/ollama/fs"
 	fsggml "github.com/ollama/ollama/fs/ggml"
-	"github.com/ollama/ollama/kvcache"
-	"github.com/ollama/ollama/logutil"
-	"github.com/ollama/ollama/ml"
-	_ "github.com/ollama/ollama/ml/backend"
-	"github.com/ollama/ollama/ml/nn/pooling"
+	"github.com/ollama/ollama/engine/kvcache"
+	"github.com/ollama/ollama/internal/logutil"
+	"github.com/ollama/ollama/backend/ml"
+	_ "github.com/ollama/ollama/backend/ml/backend"
+	"github.com/ollama/ollama/backend/ml/nn/pooling"
 	"github.com/ollama/ollama/model/input"
-	"github.com/ollama/ollama/tokenizer"
+	"github.com/ollama/ollama/model/tokenizer"
 )
 
 var (

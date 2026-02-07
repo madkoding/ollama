@@ -6,9 +6,9 @@ import (
 	"slices"
 
 	"github.com/ollama/ollama/fs"
-	"github.com/ollama/ollama/ml"
-	"github.com/ollama/ollama/ml/nn"
-	"github.com/ollama/ollama/ml/nn/rope"
+	"github.com/ollama/ollama/backend/ml"
+	"github.com/ollama/ollama/backend/ml/nn"
+	"github.com/ollama/ollama/backend/ml/nn/rope"
 )
 
 type Grid struct {

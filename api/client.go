@@ -27,10 +27,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ollama/ollama/auth"
-	"github.com/ollama/ollama/envconfig"
-	"github.com/ollama/ollama/format"
-	"github.com/ollama/ollama/version"
+	"github.com/ollama/ollama/internal/auth"
+	"github.com/ollama/ollama/internal/envconfig"
+	"github.com/ollama/ollama/internal/format"
+	"github.com/ollama/ollama/internal/version"
 )
 
 // Client encapsulates client state for interacting with the ollama

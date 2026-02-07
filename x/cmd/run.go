@@ -18,9 +18,9 @@ import (
 	"golang.org/x/term"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/progress"
-	"github.com/ollama/ollama/readline"
-	"github.com/ollama/ollama/types/model"
+	"github.com/ollama/ollama/internal/progress"
+	"github.com/ollama/ollama/internal/readline"
+	"github.com/ollama/ollama/internal/types/model"
 	"github.com/ollama/ollama/x/agent"
 	"github.com/ollama/ollama/x/tools"
 )

@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/image/draw"
 
-	"github.com/ollama/ollama/ml"
+	"github.com/ollama/ollama/backend/ml"
 	"github.com/ollama/ollama/model/imageproc"
 )
 

@@ -13,14 +13,14 @@ import (
 	"time"
 
 	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/discover"
-	"github.com/ollama/ollama/envconfig"
-	"github.com/ollama/ollama/format"
+	"github.com/ollama/ollama/backend/discover"
+	"github.com/ollama/ollama/internal/envconfig"
+	"github.com/ollama/ollama/internal/format"
 	"github.com/ollama/ollama/fs/ggml"
-	"github.com/ollama/ollama/llm"
-	"github.com/ollama/ollama/logutil"
-	"github.com/ollama/ollama/ml"
-	"github.com/ollama/ollama/types/model"
+	"github.com/ollama/ollama/backend/llm"
+	"github.com/ollama/ollama/internal/logutil"
+	"github.com/ollama/ollama/backend/ml"
+	"github.com/ollama/ollama/internal/types/model"
 	"github.com/ollama/ollama/x/imagegen"
 )
 
