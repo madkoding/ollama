@@ -254,10 +254,11 @@ jobs:
       GOFLAGS: ${{ needs.setup-environment.outputs.GOFLAGS }}
       VERSION: ${{ needs.setup-environment.outputs.VERSION }}
       KEY_CONTAINER: ${{ vars.KEY_CONTAINER }}
+      GOOGLE_SIGNING_CREDENTIALS: ${{ secrets.GOOGLE_SIGNING_CREDENTIALS }}
     steps:
       - uses: actions/checkout@v4
       - uses: google-github-actions/auth@v2
-        if: ${{ secrets.GOOGLE_SIGNING_CREDENTIALS != '' }}
+        if: ${{ env.GOOGLE_SIGNING_CREDENTIALS != '' }}
         with:
           credentials_json: ${{ secrets.GOOGLE_SIGNING_CREDENTIALS }}
       - run: |
